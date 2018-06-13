@@ -1,0 +1,63 @@
+<!Doctype html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="src/index.css"/>
+    
+</head>
+
+<body background="img/225408-fantasy_art-magic_mushrooms-Aion-Aion_Online.jpg">
+    <div ng-app="myApp" ng-controller="myCtrl">
+        <div id="bodybox">
+        <form id="chatborder">
+            <p ng-repeat="(n, message) in messages track by n" id="chatlog7" class="chatlog">{{message.From}}:&nbsp;{{message.Body}}</p>
+            <div class="chatlog">
+                <input type="text" id="chatbox" >
+                <button type="submit" ng-click="addMessage()">Send</button>
+            </div>
+        </form>
+     </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/x2js/1.2.0/xml2json.js"></script>
+    <script>
+        var app = angular.module("myApp", []);
+        app.controller("myCtrl", function ($scope, $http) {
+            $scope.messages = [];
+            $scope.sender = "User:" + Math.ceil(Math.random() * 1000);
+            $scope.addMessage = function () {
+                var newMessage = {
+                    Body: $scope.newMessageText,
+                    From: $scope.sender
+                }
+                $scope.messages.push(newMessage);
+                $scope.newMessageText = "";
+                $http({
+                    method: 'POST',
+                    url: "sms/",
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded' // Note the appropriate header
+                    },
+                    data: "From=" + encodeURIComponent(newMessage.From) +
+                        "&Body=" + encodeURIComponent(newMessage.Body)
+                }).then(function (data) {
+                    var x2js = new X2JS();
+                    var jsonObj = x2js.xml_str2json(data.data);
+                    var newResponse = {
+                        Body: jsonObj.Response.Message,
+                        From: "ChatBot"
+                    };
+
+                    $scope.messages.push(newResponse);
+                },
+                    function (err) {
+                        console.log(err);
+                    });
+            }
+        });
+
+    </script>
+</body>
+
+</html>
